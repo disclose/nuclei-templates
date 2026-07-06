@@ -42,6 +42,7 @@ nuclei -l hosts.txt -t disclose-nuclei-templates/ -var token=YOUR_KEY -rl 20 -du
 ## Notes & caveats
 
 - **Unsigned template → you'll see a warning.** These templates aren't signed with ProjectDiscovery's key, so Nuclei prints an "unsigned templates" notice and asks you to allow them; `-duc` (disable update check) keeps runs quiet. `http` templates still execute normally — only `code`-protocol templates are ever *blocked* when unsigned.
+- **Don't change the `User-Agent`.** lookup.disclose.io sits behind Cloudflare, whose bot protection 403s scanner clients. The `disclose-io-lookup/*` UA this template sends is **allowlisted at the edge** so scan requests get through cleanly (no browser-UA spoofing). Swap the UA and you'll likely get a `403`.
 - **The pipe is often the better tool.** If you're already producing scan output, [`dio-lookup`](https://github.com/disclose/dio-lookup) enriches it directly and **de-duplicates hosts first** (kinder to the rate limit): `nuclei -u example.com -jsonl | dio-lookup --nuclei`. Reach for the template when you want the disclosure contact **inline in your Nuclei findings**; reach for the pipe for large scans and automation.
 - **Data egress.** Each scanned host is sent to lookup.disclose.io, which logs requests. For target lists under NDA, be aware of that before running across a whole scope.
 - **Not affiliated with `projectdiscovery/nuclei-templates`.** This is a disclose.io-maintained set; consume it directly from here.

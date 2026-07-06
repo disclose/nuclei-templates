@@ -29,7 +29,8 @@ http:
         Host: lookup.disclose.io
         Content-Type: application/json
         Authorization: Bearer {{token}}
-        User-Agent: nuclei-disclose-io-lookup
+        User-Agent: disclose-io-lookup/1.0 (+https://github.com/disclose/nuclei-templates)
+        Accept: application/json
 
         {"input":"{{Host}}"}
 
