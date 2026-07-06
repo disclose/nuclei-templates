@@ -1,0 +1,58 @@
+id: disclose-io-lookup
+
+info:
+  name: disclose.io Security-Contact Lookup
+  author: disclose
+  severity: info
+  description: |
+    Enrichment template. For each scanned host, queries lookup.disclose.io to resolve
+    the responsible security-disclosure channel (bug bounty, security.txt, VDP, PSIRT,
+    national CERT). It reports where to report a vulnerability for that host — it does
+    NOT detect a vulnerability on the target itself.
+  reference:
+    - https://lookup.disclose.io
+    - https://github.com/disclose/nuclei-templates
+  metadata:
+    max-request: 1
+  tags: osint,disclosure,enrichment,disclose
+
+variables:
+  # Optional lookup.disclose.io API key — raises the rate limit for large scans.
+  # Pass it at runtime:  -var token=YOUR_KEY   (leave empty to run anonymously).
+  token: ""
+
+http:
+  - raw:
+      - |
+        @Host: https://lookup.disclose.io:443
+        POST /api/lookup HTTP/1.1
+        Host: lookup.disclose.io
+        Content-Type: application/json
+        Authorization: Bearer {{token}}
+        User-Agent: nuclei-disclose-io-lookup
+
+        {"input":"{{Host}}"}
+
+    # `@Host` sends the request to lookup.disclose.io while {{Host}} still resolves to
+    # each scanned target — so the target is looked up, not probed. All lookup outcomes
+    # are HTTP 200; we only surface a finding when a disclosure channel was actually
+    # found (status complete or partial), to avoid a finding for every scanned host.
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: body
+        condition: or
+        words:
+          - '"status":"complete"'
+          - '"status":"partial"'
+
+    extractors:
+      - type: json
+        json:
+          - '.status'
+          - '.attribution.organization'
+          - '.contacts[].type'
+          - '.contacts[].value'
