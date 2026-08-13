@@ -16,11 +16,6 @@ info:
     max-request: 1
   tags: osint,disclosure,enrichment,disclose
 
-variables:
-  # Optional lookup.disclose.io API key — raises the rate limit for large scans.
-  # Pass it at runtime:  -var token=YOUR_KEY   (leave empty to run anonymously).
-  token: ""
-
 http:
   - raw:
       - |
@@ -28,8 +23,8 @@ http:
         POST /api/lookup HTTP/1.1
         Host: lookup.disclose.io
         Content-Type: application/json
-        Authorization: Bearer {{token}}
-        User-Agent: disclose-io-lookup/1.0 (+https://github.com/disclose/nuclei-templates)
+        User-Agent: disclose-io-lookup/1.1.0 (+https://github.com/disclose/nuclei-templates)
+        X-Lookup-Client: nuclei-templates/1.1.0
         Accept: application/json
 
         {"input":"{{Host}}"}
@@ -55,5 +50,11 @@ http:
         json:
           - '.status'
           - '.attribution.organization'
+          - '.routeSummary.routeClass'
+          - '.routeSummary.headline'
+          - '.contactGroups[].entity'
+          - '.contactGroups[].relation'
+          - '.contactGroups[].routeClass'
+          - '.contactGroups[].contacts[].value'
           - '.contacts[].type'
           - '.contacts[].value'

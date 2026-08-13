@@ -31,18 +31,19 @@ nuclei -update-templates
 nuclei -u example.com -t github/nuclei-templates/ -duc
 ```
 
-For a larger scan, raise the rate limit with a free API key (request one at
-[hello@disclose.io](mailto:hello@disclose.io)) and keep Nuclei's own rate limiter low —
-under `@Host` every scanned target egresses to lookup's single IP:
+For a larger scan, keep Nuclei's own rate limiter low. Under `@Host` every
+scanned target egresses to lookup's single IP, and the public template
+deliberately sends no `Authorization` header:
 
 ```bash
-nuclei -l hosts.txt -t disclose-nuclei-templates/ -var token=YOUR_KEY -rl 20 -duc
+nuclei -l hosts.txt -t disclose-nuclei-templates/ -rl 20 -duc
 ```
 
 ## Notes & caveats
 
 - **Unsigned template → you'll see a warning.** These templates aren't signed with ProjectDiscovery's key, so Nuclei prints an "unsigned templates" notice and asks you to allow them; `-duc` (disable update check) keeps runs quiet. `http` templates still execute normally — only `code`-protocol templates are ever *blocked* when unsigned.
 - **Don't change the `User-Agent`.** lookup.disclose.io sits behind Cloudflare, whose bot protection 403s scanner clients. The `disclose-io-lookup/*` UA this template sends is **allowlisted at the edge** so scan requests get through cleanly (no browser-UA spoofing). Swap the UA and you'll likely get a `403`.
+- **Route-aware output.** Findings include `routeSummary` plus the ordered `contactGroups` entity, relationship, route class, and contact values. Flat contacts remain extracted for compatibility.
 - **The pipe is often the better tool.** If you're already producing scan output, [`dio-lookup`](https://github.com/disclose/dio-lookup) enriches it directly and **de-duplicates hosts first** (kinder to the rate limit): `nuclei -u example.com -jsonl | dio-lookup --nuclei`. Reach for the template when you want the disclosure contact **inline in your Nuclei findings**; reach for the pipe for large scans and automation.
 - **Data egress.** Each scanned host is sent to lookup.disclose.io, which logs requests. For target lists under NDA, be aware of that before running across a whole scope.
 - **Not affiliated with `projectdiscovery/nuclei-templates`.** This is a disclose.io-maintained set; consume it directly from here.
