@@ -20,15 +20,18 @@ http:
   - raw:
       - |
         @Host: https://lookup.disclose.io:443
+        @timeout: 45s
         POST /api/lookup HTTP/1.1
         Host: lookup.disclose.io
         Content-Type: application/json
-        User-Agent: disclose-io-lookup/1.1.0 (+https://github.com/disclose/nuclei-templates)
-        X-Lookup-Client: nuclei-templates/1.1.0
+        User-Agent: disclose-io-lookup/1.2.0 (+https://github.com/disclose/nuclei-templates)
+        X-Lookup-Client: nuclei-templates/1.2.0
         Accept: application/json
 
         {"input":"{{Host}}"}
 
+    # `@timeout: 45s` overrides Nuclei's 10s default: a lookup can take ~30s, and a
+    # client that gives up early gets nothing while the service keeps working.
     # `@Host` sends the request to lookup.disclose.io while {{Host}} still resolves to
     # each scanned target — so the target is looked up, not probed. All lookup outcomes
     # are HTTP 200; we only surface a finding when a disclosure channel was actually

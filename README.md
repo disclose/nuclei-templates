@@ -31,12 +31,15 @@ nuclei -update-templates
 nuclei -u example.com -t github/nuclei-templates/ -duc
 ```
 
-For a larger scan, keep Nuclei's own rate limiter low. Under `@Host` every
+For a larger scan, keep Nuclei's parallelism low. Under `@Host` every
 scanned target egresses to lookup's single IP, and the public template
-deliberately sends no `Authorization` header:
+deliberately sends no `Authorization` header. The service resolves about 8
+lookups at once for everyone and a lookup can take up to ~30s, so Nuclei's
+default bulk size of 25 mostly earns `503` responses (the finding is then
+silently missing). Cap the hosts in flight with `-bs`:
 
 ```bash
-nuclei -l hosts.txt -t disclose-nuclei-templates/ -rl 20 -duc
+nuclei -l hosts.txt -t disclose-nuclei-templates/ -bs 4 -rl 2 -duc
 ```
 
 ## Notes & caveats
